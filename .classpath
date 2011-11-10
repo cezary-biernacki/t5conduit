@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry exported="true" kind="var" path="LIB/slf4j-api-1.6.1.jar" sourcepath="/LIB/slf4j-api-1.6.1-sources.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/commons-lang-2.1.jar" sourcepath="/LIB/commons-lang-2.1-src.zip"/>
+	<classpathentry exported="true" kind="var" path="LIB/tapestry5-annotations-5.2.6.jar" sourcepath="/LIB/tapestry5-annotations-5.2.6-sources.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/tapestry-core-5.2.6.jar" sourcepath="/LIB/tapestry-core-5.2.6-sources.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/tapestry-ioc-5.2.6.jar" sourcepath="/LIB/tapestry-ioc-5.2.6-sources.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/javassist-3.12.1.GA.jar" sourcepath="/LIB/javassist-3.12.1.GA-sources.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/js-rhino-1.7.jar" sourcepath="/LIB/js-rhino-1.7-sources.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/antlr-runtime-3.1.1.jar"/>
+	<classpathentry exported="true" kind="var" path="LIB/woodstox-core-asl-4.0.3.jar" sourcepath="/LIB/woodstox-core-asl-4.0.3-sources.zip"/>
+	<classpathentry exported="true" kind="var" path="LIB/xerces-2.6.2.jar"/>
+	<classpathentry kind="var" path="LIB/log4j-1.2.14.jar">
+		<accessrules>
+			<accessrule kind="nonaccessible" pattern="**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="var" path="LIB/slf4j-log4j12-1.6.1.jar"/>
+	<classpathentry kind="var" path="LIB/servlet-api-2.4.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/t52transformers"/>
+	<classpathentry kind="output" path="target/classes-eclipse"/>
+</classpath>
