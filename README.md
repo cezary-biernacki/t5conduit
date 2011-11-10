@@ -4,10 +4,10 @@ Just add uk.org.cezary.t5conduit.T5ConduitModule as submodule to AppModule using
 After that all your '*.coffee' and '*.less' resources will be automatically compiled to 
 JavaScript or CSS before sending to a user browser. 
 
+If you want to use t5conduit with Tapestry 5.2, add t52transformers (https://github.com/cezary-biernacki/t52transformers) module to your project.
 
-If you want to use t5conduit with Tapestry 5.2, add t52transformers (https://github.com/cezary-biernacki/t52transformers.git) module to your project.
-
-You can find already compiled binaries in https://github.com/cezary-biernacki/t5conduit-bin.git
+You can find already compiled binaries here
+    https://github.com/cezary-biernacki/t5conduit-bin
 
 ---
 Written by Cezary Biernacki.
