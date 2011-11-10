@@ -47,6 +47,10 @@
             <id>apache-snapshots</id>
             <url>http://repository.apache.org/snapshots/</url>
         </repository>
+        <repository>
+            <id>apache-staging</id>
+            <url>https://repository.apache.org/content/groups/staging/</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -60,7 +64,7 @@
     </pluginRepositories>
 
     <properties>
-        <tapestry-release-version>5.3.0</tapestry-release-version>
+        <tapestry-release-version>5.3-rc-3</tapestry-release-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
