@@ -1,8 +1,8 @@
-Module for Tapestry 5.3 that seemlessly integrate LessCSS and CoffeeScript.
+Module for Tapestry 5.2/5.3 that allows seamless integration of LessCSS and CoffeeScript.
 
 Just add uk.org.cezary.t5conduit.T5ConduitModule as submodule to AppModule using @SubModule.
 
-After that all your '*.coffee' and '*.less' resources will be automatically compiled to 
+After that all your '\*.coffee' and '\*.less' resources will be automatically compiled to 
 JavaScript or CSS before sending to a user browser. 
 
 If you want to use t5conduit with Tapestry 5.2, add t52transformers (https://github.com/cezary-biernacki/t52transformers) module to your project.
