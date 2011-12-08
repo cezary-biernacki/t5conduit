@@ -33,6 +33,7 @@ import org.apache.tapestry5.services.assets.ResourceTransformer;
 public class T5ConduitModule {
     public static void bind(ServiceBinder binder) {
         binder.bind(LessToCssTransformer.class);
+        binder.bind(CoffeeToJsTransformer.class);
         binder.bind(ClassPathLoader.class);
     }
     
@@ -44,11 +45,11 @@ public class T5ConduitModule {
 
 
     public static void contributeStreamableResourceSource(MappedConfiguration<String, ResourceTransformer> configuration,
-            LessToCssTransformer lessTransformer) {
-        configuration.addInstance("coffee", CoffeeToJsTransformer.class);
+    		CoffeeToJsTransformer coffeeTransformer,
+    		LessToCssTransformer lessTransformer)
+    {
+        configuration.add("coffee", coffeeTransformer);
         configuration.add("less", lessTransformer);
     }
-    
-
 }
 
