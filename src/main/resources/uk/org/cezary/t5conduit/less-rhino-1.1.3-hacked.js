@@ -2424,9 +2424,9 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
 }
 
 
-function doParse(input, compress) {
+function doParse(input, compress, filename) {
     
-    var parser = new less.Parser();
+    var parser = new less.Parser({filename: filename});
     var result = new Object();
     try {
         parser.parse(input, function (e, root) {
