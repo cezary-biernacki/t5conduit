@@ -34,6 +34,8 @@ import org.mozilla.javascript.Scriptable;
  * 
  * @author Cezary Biernacki
  * @see <a href="http://coffeescript.org/">http://coffeescript.org/</a>
+ * 
+ * Based on <a href="http://yeungda.github.com/jcoffeescript">JCoffeeScript</a>
  */
 
 public class CoffeeToJsTransformer implements ResourceTransformer {
@@ -47,8 +49,7 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
 
         try {
             Context context = Context.enter();
-            context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and
-                                              // fails
+            context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
             try {
                 globalScope = context.initStandardObjects();
                 context.evaluateReader(globalScope, reader, COFFEE_JS, 0, null);
@@ -62,7 +63,7 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
 
     @Override
     public InputStream transform(Resource source, ResourceDependencies dependencies) throws IOException {
-        final StringBuilder b = new StringBuilder();
+    	final StringBuilder b = new StringBuilder();
         
         final InputStreamReader reader = new InputStreamReader(source.openStream(), "UTF-8");
         try {
@@ -74,19 +75,19 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
             reader.close();
         }
         
-        final String result = this.compile(b.toString());
+        final String result = this.compile(b.toString(), source);
         return new ByteArrayInputStream(result.getBytes("UTF-8"));
     }
 
-    private String compile(String source) {
+    private synchronized String compile(String sourceText, Resource source) {
 
         final Context context = Context.enter();
         try {
             Scriptable scope = context.newObject(globalScope);
             scope.setParentScope(globalScope);
-            scope.put("source", scope, source);
+            scope.put("source", scope, sourceText);
             return (String) context.evaluateString(scope, "CoffeeScript.compile(source);",
-                    "CoffeeToJsTransformer", 0, null);
+                    "'compiling: " + source.getPath() +"'", 0, null);
         } finally {
             Context.exit();
         }
