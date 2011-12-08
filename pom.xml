@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.org.cezary</groupId>
     <artifactId>t5conduit</artifactId>
     <packaging>jar</packaging>
-    <version>0.2</version>
+    <version>0.2-SNAPSHOT</version>
     <name>LessCSS and CoffeeScript integration for Tapestry 5.2 and 5.3</name>
     <url>https://github.com/cezary-biernacki/t5conduit.git</url>
     <dependencies>
@@ -71,7 +72,7 @@
     <scm>
   		<connection>scm:git:git://github.com/cezary-biernacki/t5conduit.git</connection>
   		<url>scm:git:git://github.com/cezary-biernacki/t5conduit.git</url>
-  		<developerConnection>scm:git:git://github.com/cezary-biernacki/t5conduit.git</developerConnection>
+  		<developerConnection>scm:git:git@github.com:cezary-biernacki/t5conduit.git</developerConnection>
 	</scm>
 
 </project>
