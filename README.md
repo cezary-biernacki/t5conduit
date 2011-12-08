@@ -32,8 +32,7 @@ Usage example:
 If you want to use t5conduit with Tapestry 5.2, you must also add t52transformers 
 (https://github.com/cezary-biernacki/t52transformers) module to your project.
 
-You can find precompiled binaries, [here](https://github.com/cezary-biernacki/t5conduit-bin), or 
-or [here](https://github.com/cezary-biernacki/t5conduit/downloads). 
+You can find precompiled binaries, [here](https://github.com/cezary-biernacki/t5conduit/downloads). 
 	
 
 ---
