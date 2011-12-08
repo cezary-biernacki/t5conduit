@@ -1,78 +1,88 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>uk.org.cezary</groupId>
-    <artifactId>t5conduit</artifactId>
-    <packaging>jar</packaging>
-    <version>0.2-SNAPSHOT</version>
-    <name>LessCSS and CoffeeScript integration for Tapestry 5.2 and 5.3</name>
-    <url>https://github.com/cezary-biernacki/t5conduit.git</url>
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.tapestry</groupId>
-            <artifactId>tapestry-core</artifactId>
-            <version>${tapestry-release-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>rhino</groupId>
-            <artifactId>js</artifactId>
-            <version>1.7R1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>uk.org.cezary</groupId>
+	<artifactId>t5conduit</artifactId>
+	<packaging>jar</packaging>
+	<version>0.3-SNAPSHOT</version>
+	<name>LessCSS and CoffeeScript integration for Tapestry 5.2 and 5.3</name>
+	<url>https://github.com/cezary-biernacki/t5conduit.git</url>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-core</artifactId>
+			<version>${tapestry-release-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>rhino</groupId>
+			<artifactId>js</artifactId>
+			<version>1.7R1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <optimize>true</optimize>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<optimize>true</optimize>
+				</configuration>
+			</plugin>
 
-    <repositories>
-        <!-- This repository is only needed when the tapestry-release-version is a snapshot release. -->
-        <repository>
-            <id>apache-snapshots</id>
-            <url>http://repository.apache.org/snapshots/</url>
-        </repository>
-        <repository>
-            <id>apache-staging</id>
-            <url>https://repository.apache.org/content/groups/staging/</url>
-        </repository>
-    </repositories>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.2.1</version>
+				<configuration>
+					<tagNameFormat>@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
-    <pluginRepositories>
+	<repositories>
+		<!-- This repository is only needed when the tapestry-release-version is 
+			a snapshot release. -->
+		<repository>
+			<id>apache-snapshots</id>
+			<url>http://repository.apache.org/snapshots/</url>
+		</repository>
+		<repository>
+			<id>apache-staging</id>
+			<url>https://repository.apache.org/content/groups/staging/</url>
+		</repository>
+	</repositories>
 
-        <!-- As above, this can be commented out when access to the snapshot version of a Tapestry Maven plugin is not required.   -->
-        <pluginRepository>
-            <id>apache-snapshots</id>
-            <url>http://repository.apache.org/snapshots/</url>
-        </pluginRepository>
+	<pluginRepositories>
 
-    </pluginRepositories>
+		<!-- As above, this can be commented out when access to the snapshot version 
+			of a Tapestry Maven plugin is not required. -->
+		<pluginRepository>
+			<id>apache-snapshots</id>
+			<url>http://repository.apache.org/snapshots/</url>
+		</pluginRepository>
 
-    <properties>
-        <tapestry-release-version>5.3</tapestry-release-version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
-    
-    <scm>
-  		<connection>scm:git:git://github.com/cezary-biernacki/t5conduit.git</connection>
-  		<url>scm:git:git://github.com/cezary-biernacki/t5conduit.git</url>
-  		<developerConnection>scm:git:git://github.com/cezary-biernacki/t5conduit.git</developerConnection>
+	</pluginRepositories>
+
+	<properties>
+		<tapestry-release-version>5.3</tapestry-release-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<scm>
+		<connection>scm:git:git://github.com/cezary-biernacki/t5conduit.git</connection>
+		<url>http://github.com/cezary-biernacki/t5conduit</url>
+		<developerConnection>scm:git:git@github.com:cezary-biernacki/t5conduit.git</developerConnection>
 	</scm>
 
 </project>
