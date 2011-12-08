@@ -114,7 +114,7 @@ public class LessToCssTransformer implements ResourceTransformer {
         return new ByteArrayInputStream(result.getBytes("UTF-8"));
     }
 
-    private String compile(String source, final Resource resource, final ResourceDependencies dependencies) {
+    private synchronized String compile(String source, final Resource resource, final ResourceDependencies dependencies) {
         
         final Context context = Context.enter();
         try {
@@ -128,12 +128,13 @@ public class LessToCssTransformer implements ResourceTransformer {
             synchronized (compileLock) {
                 final Scriptable jsLoader = Context.toObject(wrappedLoader, globalScope);
                 globalScope.put("loader", globalScope, jsLoader);
+                
                 context.evaluateString(globalScope, "function readFile(name) { return loader.readFile(name); };", "init", 1, null);
                 
                 
                 final String shouldCompress = this.productionMode ? "true" : "false";
-                final String cmd = String.format("doParse(source, %s);", shouldCompress);
-                final String result = (String) context.evaluateString(scope, cmd, "LessToCssTransformer", 0, null);
+                final String cmd = String.format("doParse(source, %s, '%s');", shouldCompress, resource.getPath());
+                final String result = (String) context.evaluateString(scope, cmd, "compiling: '" + resource.getPath() + "'", 0, null);
                 globalScope.delete("readFile");
                 globalScope.delete("loader");
                 return result;
