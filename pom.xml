@@ -6,7 +6,8 @@
 	<version>0.5-SNAPSHOT</version>
 	<name>LessCSS and CoffeeScript integration for Tapestry 5.2 and 5.3</name>
 	<url>https://github.com/cezary-biernacki/t5conduit.git</url>
-	<dependencies>
+	
+    <dependencies>
 		<dependency>
 			<groupId>org.apache.tapestry</groupId>
 			<artifactId>tapestry-core</artifactId>
@@ -48,7 +49,24 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+
+        <resources>
+          <resource>
+            <directory>${basedir}</directory>
+            <filtering>false</filtering>
+            <includes>
+              <include>CHANGELOG.txt</include>
+              <include>LICENSE.txt</include>
+              <include>README.md</include>
+              <include>coffee-LICENSE</include>
+              <include>coffee-README</include>
+              <include>less-LICENSE.txt</include>
+              <include>less-README.md.txt</include>
+            </includes>
+          </resource>
+        </resources>
+    </build>
+    
 
 	<repositories>
 		<!-- This repository is only needed when the tapestry-release-version is 
