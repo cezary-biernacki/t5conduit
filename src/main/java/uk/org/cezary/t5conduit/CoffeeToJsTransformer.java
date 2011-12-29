@@ -18,12 +18,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
+import org.apache.tapestry5.ioc.Invokable;
 import org.apache.tapestry5.ioc.Resource;
 import org.apache.tapestry5.services.assets.ResourceDependencies;
 import org.apache.tapestry5.services.assets.ResourceTransformer;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+
+import uk.org.cezary.t5conduit.internal.Pool;
 
 
 /**
@@ -41,25 +45,47 @@ import org.mozilla.javascript.Scriptable;
 public class CoffeeToJsTransformer implements ResourceTransformer {
 
     private static final String COFFEE_JS = "coffee-script-1.2.0.js";
-    
-    private final Scriptable globalScope;
 
-    public CoffeeToJsTransformer() throws IOException {
-        final Reader reader = new InputStreamReader(getClass().getResourceAsStream(COFFEE_JS), "UTF-8");
+    private final Pool<Scriptable> pool = new Pool<Scriptable>(3, 
+        	new Invokable<Scriptable>() {
+    	    	@Override
+    	    	public Scriptable invoke() {
+    	    		return buildGlobalScope();
+    			}
+        	}
+        );
+
+
+    public CoffeeToJsTransformer() {}
+
+	private Scriptable buildGlobalScope() {
+        try {
+			return buildGlobalScopeInternal();
+		} catch (IOException e) {
+			throw new RuntimeException("failed to compile: " + COFFEE_JS, e);
+		}
+	}
+
+	private Scriptable buildGlobalScopeInternal()
+			throws UnsupportedEncodingException, IOException {
+		final Reader reader = new InputStreamReader(getClass().getResourceAsStream(COFFEE_JS), "UTF-8");
 
         try {
             Context context = Context.enter();
-            context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
             try {
-                globalScope = context.initStandardObjects();
-                context.evaluateReader(globalScope, reader, COFFEE_JS, 1, null);
+                context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
+        		Scriptable scope = context.initStandardObjects();
+                context.evaluateReader(scope, reader, COFFEE_JS, 1, null);
+                return scope;
             } finally {
                 Context.exit();
             }
         } finally {
             reader.close();
         }
-    }
+	}
+	
+	
 
     @Override
     public InputStream transform(Resource source, ResourceDependencies dependencies) throws IOException {
@@ -79,9 +105,17 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
         return new ByteArrayInputStream(result.getBytes("UTF-8"));
     }
 
-    private synchronized String compile(String sourceText, Resource source) {
+    private synchronized String compile(final String sourceText, final Resource source) {
+    	return pool.withObject(new Pool.Processor<String, Scriptable>() {
+    		@Override
+    		public String process(Scriptable globalScope) {
+    	        return compileInternal(globalScope, sourceText, source);
+    		}
+		});
+    }
 
-        final Context context = Context.enter();
+	private String compileInternal(Scriptable globalScope, String sourceText, Resource source) {
+		final Context context = Context.enter();
         try {
             Scriptable scope = context.newObject(globalScope);
             scope.setParentScope(globalScope);
@@ -91,5 +125,5 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
         } finally {
             Context.exit();
         }
-    }
+	}
 }

@@ -19,12 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.tapestry5.Asset;
 import org.apache.tapestry5.SymbolConstants;
+import org.apache.tapestry5.ioc.Invokable;
 import org.apache.tapestry5.ioc.Resource;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.ioc.annotations.Symbol;
@@ -38,6 +38,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.org.cezary.t5conduit.internal.Pool;
 import uk.org.cezary.t5conduit.internal.WrappedLoader;
 
 
@@ -56,15 +57,22 @@ public class LessToCssTransformer implements ResourceTransformer {
     private static final Logger log = LoggerFactory.getLogger(LessToCssTransformer.class);
     
     private static final String LESS_JS = "less-1.1.5.js";
-    private final Scriptable globalScope;
     private final boolean productionMode; 
     
     private final List<DependencySourceLoader> loaders;
     
-    private final Object compileLock = new Object();
-    
     private final String ctxPathVarName; 
     private final AssetSource assetSource;
+    
+    
+    private final Pool<Scriptable> pool = new Pool<Scriptable>(3, 
+    	new Invokable<Scriptable>() {
+	    	@Override
+	    	public Scriptable invoke() {
+	    		return buildGlobalScope();
+			}
+    	}
+    );
 
     public LessToCssTransformer(
                 final List<DependencySourceLoader> loaders, 
@@ -82,13 +90,18 @@ public class LessToCssTransformer implements ResourceTransformer {
         ownLoaders.add(new RelativeDependencySourceLoader());
         this.loaders = ownLoaders;
         
-        this.globalScope = buildGlobalScope();
     }
 
-	private Scriptable buildGlobalScope() throws UnsupportedEncodingException,
-			IOException {
+	private Scriptable buildGlobalScope() {
+        try {
+			return buildGlobalScopeInternal();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to prepare less compiler from " + LESS_JS, e);
+		}
+	}
 
-        Context context = Context.enter();
+	private Scriptable buildGlobalScopeInternal() throws IOException {
+		Context context = Context.enter();
         context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and
                                           // fails
         
@@ -124,10 +137,10 @@ public class LessToCssTransformer implements ResourceTransformer {
         }
         
         final StringBuilder b = new StringBuilder();
-        if (!ctxPathVarName.isEmpty()) {
+        if (hasCtxPath()) {
 	        final Asset ctx = assetSource.getUnlocalizedAsset("context:/");
 	        final String ctxUrl = ctx.toClientURL();
-	        b.append(String.format("@%s: \"%s\"; ", ctxPathVarName, ctxUrl));
+	        b.append(String.format("@%s: \"%s\";\n", ctxPathVarName, ctxUrl));
         }
         
         final Reader reader = new BufferedReader(new InputStreamReader(resource.openStream(), "UTF-8"));
@@ -144,34 +157,44 @@ public class LessToCssTransformer implements ResourceTransformer {
         return new ByteArrayInputStream(result.getBytes("UTF-8"));
     }
 
-    private synchronized String compile(String source, final Resource resource, final ResourceDependencies dependencies) {
-        
-        final Context context = Context.enter();
-        try {
-            
-            synchronized (compileLock) {
-                Scriptable gs = getGlobalScope();
-				Scriptable scope = context.newObject(gs);
-                scope.setParentScope(gs);
-                scope.put("source", scope, source);
-                
-                final WrappedLoader wrappedLoader = prepareLoader(resource, dependencies, gs);
-                final Scriptable jsLoader = Context.toObject(wrappedLoader, gs);
-                gs.put("loader", gs, jsLoader);
-                
-                final String shouldCompress = this.productionMode ? "true" : "false";
-                final String cmd = String.format("doParse(source, %s, '%s');", shouldCompress, resource.getPath());
-                final String result = (String) context.evaluateString(scope, cmd, String.format("%s compiling '%s'", LESS_JS, resource.getPath()), 0, null);
-                gs.delete("loader");
-                return result;
-            }
-        } finally {
-            Context.exit();
-        }
+	private boolean hasCtxPath() {
+		return !ctxPathVarName.isEmpty();
+	}
+
+    private synchronized String compile(final String source, final Resource resource, final ResourceDependencies dependencies) {
+        return pool.withObject(new Pool.Processor<String, Scriptable>() {
+        	@Override
+        	public String process(Scriptable gs) {
+        		return compileInternal(source, resource, dependencies, gs);
+        	}
+		});
     }
 
-	private Scriptable getGlobalScope() {
-		return globalScope;
+	private String compileInternal(final String source,
+			final Resource resource, final ResourceDependencies dependencies, final Scriptable gs) {
+        final Context context = Context.enter();
+        try {
+			Scriptable scope = context.newObject(gs);
+			scope.setParentScope(gs);
+			scope.put("source", scope, source);
+			
+			final WrappedLoader wrappedLoader = prepareLoader(resource, dependencies, gs);
+			final Scriptable jsLoader = Context.toObject(wrappedLoader, gs);
+			gs.put("loader", gs, jsLoader);
+			
+			final String shouldCompress = this.productionMode ? "true" : "false";
+			final String cmd = String.format("doParse(source, %s, '%s');", shouldCompress, resource.getPath());
+			final String result = (String) context.evaluateString(scope, cmd, 
+					String.format("%s compiling '%s'", LESS_JS, resource.getPath()), 
+					hasCtxPath() ? 0 : 1, null);
+			return result;
+        } finally {
+        	try {
+			gs.delete("loader");
+        	} finally { 
+        		Context.exit();
+        	}
+        }
 	}
 
     private WrappedLoader prepareLoader(final Resource resource, final ResourceDependencies dependencies, final Scriptable scope) {
