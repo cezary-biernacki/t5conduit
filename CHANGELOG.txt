@@ -1,0 +1,31 @@
+0.4 - 2011-12-29
+	* important
+		- You now must use Rhino 1.R3 (or later). 
+	      Earlier Rhino versions simply fail to parse new CoffeeScript compiler.
+		  If you get 'missing name after . operator' exception, it means that 
+		  an older Rhino library is somewhere on your classpath.  
+		 
+	* major
+		
+		- LessCSS is upgraded from 1.1.3 to 1.1.5 
+		  see 
+		    https://github.com/cloudhead/less.js/compare/42556109588c71762334e7d984d365f82ef984c0...bf73ee7c6840fe5da50527283507e27528313681 
+		  
+		- CoffeeScript is upgraded from 1.1.2 to 1.2.0.
+		  see 
+		    http://coffeescript.org/#changelog
+		  	https://github.com/jashkenas/coffee-script/compare/1.1.2...1.2.0
+		  	
+		- CTX_PATH variable is now added to *.less files.
+		- You can now customise configuration of module with new 
+		  t5conduit.coffee-suffix, t5conduit.less-suffix, t5conduit.less-ctx-path-var-name
+		  variables.
+
+    * minor
+    	- Error messages from Less compiler should be now slightly more readable. 		       
+		
+	* internal
+		- Unchanged Less compiler file is now used, making future upgrades easier.
+		- Internal 'global scope' objects used by transformers are now pooled, 
+		  avoiding a bottleneck of a single synchronized block during resource compilation,
+		  hopefully making the application more responsive in development on multi-core machines.   
