@@ -40,7 +40,7 @@ import org.mozilla.javascript.Scriptable;
 
 public class CoffeeToJsTransformer implements ResourceTransformer {
 
-    private static final String COFFEE_JS = "coffee-script-1.1.2.js";
+    private static final String COFFEE_JS = "coffee-script-1.2.0.js";
     
     private final Scriptable globalScope;
 
@@ -52,7 +52,7 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
             context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
             try {
                 globalScope = context.initStandardObjects();
-                context.evaluateReader(globalScope, reader, COFFEE_JS, 0, null);
+                context.evaluateReader(globalScope, reader, COFFEE_JS, 1, null);
             } finally {
                 Context.exit();
             }
