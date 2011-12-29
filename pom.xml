@@ -3,7 +3,7 @@
 	<groupId>uk.org.cezary</groupId>
 	<artifactId>t5conduit</artifactId>
 	<packaging>jar</packaging>
-	<version>0.4</version>
+	<version>0.5-SNAPSHOT</version>
 	<name>LessCSS and CoffeeScript integration for Tapestry 5.2 and 5.3</name>
 	<url>https://github.com/cezary-biernacki/t5conduit.git</url>
 	<dependencies>
