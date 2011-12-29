@@ -139,7 +139,7 @@ public class LessToCssTransformer implements ResourceTransformer {
         final StringBuilder b = new StringBuilder();
         if (hasCtxPath()) {
 	        final Asset ctx = assetSource.getUnlocalizedAsset("context:/");
-	        final String ctxUrl = ctx.toClientURL();
+	        final String ctxUrl = ctx.toClientURL().trim().replaceAll("/$", "");
 	        b.append(String.format("@%s: \"%s\";\n", ctxPathVarName, ctxUrl));
         }
         
