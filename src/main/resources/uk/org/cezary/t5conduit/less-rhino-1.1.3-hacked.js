@@ -2401,11 +2401,13 @@ require('less/tree').jsify = function (obj) {
 
 function printError(name, e) {
   var out = '';
+  
   for (var p in e) {
-    out += p + ': ' + e[p] + ', ';
+    out += p + ': "' + e[p] + '", ';
   }
   
-  print("error parsing: " + name + " info: {" +  out + "}");
+  out = 'problem parsing: ' + name + ' (top level) info: {' + out + '}';
+  print(out);
   return out;
 }
 
@@ -2426,19 +2428,19 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
 
 function doParse(input, compress, filename) {
     
-    var parser = new less.Parser({filename: filename});
+    var parser = new less.Parser({'filename': filename});
     var result = new Object();
     try {
         parser.parse(input, function (e, root) {
             if (e) {
-                out = printError("[top-level]", e);
+                var out = printError(filename, e);
                 result.v = "/* error: " + out + "*/\n";
             } else {
                 result.v = root.toCSS( { compress : compress } );
             }
         });
     } catch(e) {
-        out = printError("[top-level (exception)]", e);  
+        var out = printError(filename, e);  
         return "/* exception: " + out + "*/\n";
     }
     
