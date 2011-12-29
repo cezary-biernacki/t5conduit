@@ -16,7 +16,11 @@ package uk.org.cezary.t5conduit;
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.ServiceBinder;
 import org.apache.tapestry5.ioc.annotations.Contribute;
+import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.ioc.annotations.SubModule;
+import org.apache.tapestry5.ioc.annotations.Symbol;
+import org.apache.tapestry5.ioc.services.FactoryDefaults;
+import org.apache.tapestry5.ioc.services.SymbolProvider;
 import org.apache.tapestry5.services.TapestryModule;
 import org.apache.tapestry5.services.assets.ContentTypeAnalyzer;
 import org.apache.tapestry5.services.assets.ResourceTransformer;
@@ -37,19 +41,43 @@ public class T5ConduitModule {
         binder.bind(ClassPathLoader.class);
     }
     
+    @Contribute(SymbolProvider.class)
+    @FactoryDefaults
+    public static void setupDefaultSymbols(MappedConfiguration<String, String> configuration) {
+    	configuration.add(T5ConduitConstants.COFFEE_SUFFIX, "coffee");
+    	configuration.add(T5ConduitConstants.LESS_SUFFIX, "less");
+    	configuration.add(T5ConduitConstants.LESS_CTX_PATH_VAR_NAME, "CTX_PATH");
+    }
+    
     @Contribute(ContentTypeAnalyzer.class)
-    public static void setupContentTypeMappings(MappedConfiguration<String, String> configuration) {
-        configuration.add("coffee", "text/javascript");
-        configuration.add("less", "text/css");
+    public static void setupContentTypeMappings(MappedConfiguration<String, String> configuration, 
+    		@Inject @Symbol(T5ConduitConstants.COFFEE_SUFFIX) String coffeeSuffix,
+    		@Inject @Symbol(T5ConduitConstants.LESS_SUFFIX) String lessSuffix
+    		) {
+
+    	if (!coffeeSuffix.isEmpty()) {
+    		configuration.add(coffeeSuffix, "text/javascript");
+    	}
+    	
+    	if (!lessSuffix.isEmpty()) {
+    		configuration.add(lessSuffix, "text/css");
+    	}
     }
 
 
     public static void contributeStreamableResourceSource(MappedConfiguration<String, ResourceTransformer> configuration,
     		CoffeeToJsTransformer coffeeTransformer,
-    		LessToCssTransformer lessTransformer)
+    		LessToCssTransformer lessTransformer,
+    		@Inject @Symbol(T5ConduitConstants.COFFEE_SUFFIX) String coffeeSuffix,
+    		@Inject @Symbol(T5ConduitConstants.LESS_SUFFIX) String lessSuffix
+    		)
     {
-        configuration.add("coffee", coffeeTransformer);
-        configuration.add("less", lessTransformer);
+    	if (!coffeeSuffix.isEmpty()) {
+    		configuration.add(coffeeSuffix, coffeeTransformer);
+    	}
+    	if (!lessSuffix.isEmpty()) {
+    		configuration.add(lessSuffix, lessTransformer);
+    	}
     }
 }
 

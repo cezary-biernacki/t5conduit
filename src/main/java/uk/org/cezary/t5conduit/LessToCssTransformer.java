@@ -22,11 +22,13 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.tapestry5.Asset;
 import org.apache.tapestry5.SymbolConstants;
 import org.apache.tapestry5.ioc.Resource;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.ioc.annotations.Symbol;
 import org.apache.tapestry5.ioc.annotations.UsesConfiguration;
+import org.apache.tapestry5.services.AssetSource;
 import org.apache.tapestry5.services.assets.ResourceDependencies;
 import org.apache.tapestry5.services.assets.ResourceTransformer;
 import org.mozilla.javascript.Context;
@@ -58,13 +60,21 @@ public class LessToCssTransformer implements ResourceTransformer {
     private final List<DependencySourceLoader> loaders;
     
     private final Object compileLock = new Object();
+    
+    private final String ctxPathVarName; 
+    private final AssetSource assetSource;
 
     public LessToCssTransformer(
                 final List<DependencySourceLoader> loaders, 
-                @Inject @Symbol(SymbolConstants.PRODUCTION_MODE) final boolean productionMode) 
+                @Inject @Symbol(SymbolConstants.PRODUCTION_MODE) final boolean productionMode,
+                @Inject @Symbol(T5ConduitConstants.LESS_CTX_PATH_VAR_NAME) String ctxPathVarName,
+                AssetSource assetSource) 
     
     throws IOException {
         this.productionMode = productionMode;
+        
+        this.ctxPathVarName = ctxPathVarName;
+        this.assetSource = assetSource;
         
         final ArrayList<DependencySourceLoader> ownLoaders = new ArrayList<DependencySourceLoader>(loaders);
         ownLoaders.add(new RelativeDependencySourceLoader());
@@ -100,6 +110,12 @@ public class LessToCssTransformer implements ResourceTransformer {
         }
         
         final StringBuilder b = new StringBuilder();
+        if (!ctxPathVarName.isEmpty()) {
+	        final Asset ctx = assetSource.getUnlocalizedAsset("context:/");
+	        final String ctxUrl = ctx.toClientURL();
+	        b.append(String.format("@%s: \"%s\"; ", ctxPathVarName, ctxUrl));
+        }
+        
         final Reader reader = new BufferedReader(new InputStreamReader(resource.openStream(), "UTF-8"));
         try {
             int c;
@@ -121,20 +137,20 @@ public class LessToCssTransformer implements ResourceTransformer {
             
             final WrappedLoader wrappedLoader = prepareLoader(resource, dependencies);
             
-            Scriptable scope = context.newObject(globalScope);
-            scope.setParentScope(globalScope);
-            scope.put("source", scope, source);
 
             synchronized (compileLock) {
+                Scriptable scope = context.newObject(globalScope);
+                scope.setParentScope(globalScope);
+                scope.put("source", scope, source);
+                
                 final Scriptable jsLoader = Context.toObject(wrappedLoader, globalScope);
                 globalScope.put("loader", globalScope, jsLoader);
                 
                 context.evaluateString(globalScope, "function readFile(name) { return loader.readFile(name); };", "init", 1, null);
                 
-                
                 final String shouldCompress = this.productionMode ? "true" : "false";
                 final String cmd = String.format("doParse(source, %s, '%s');", shouldCompress, resource.getPath());
-                final String result = (String) context.evaluateString(scope, cmd, "compiling: '" + resource.getPath() + "'", 0, null);
+                final String result = (String) context.evaluateString(scope, cmd, String.format("%s compiling '%s'", LESS_JS, resource.getPath()), 0, null);
                 globalScope.delete("readFile");
                 globalScope.delete("loader");
                 return result;
