@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,7 @@ import org.apache.tapestry5.services.assets.ResourceDependencies;
 import org.apache.tapestry5.services.assets.ResourceTransformer;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +55,7 @@ import uk.org.cezary.t5conduit.internal.WrappedLoader;
 public class LessToCssTransformer implements ResourceTransformer {
     private static final Logger log = LoggerFactory.getLogger(LessToCssTransformer.class);
     
-    private static final String LESS_JS = "less-rhino-1.1.3-hacked.js";
+    private static final String LESS_JS = "less-1.1.5.js";
     private final Scriptable globalScope;
     private final boolean productionMode; 
     
@@ -80,26 +82,38 @@ public class LessToCssTransformer implements ResourceTransformer {
         ownLoaders.add(new RelativeDependencySourceLoader());
         this.loaders = ownLoaders;
         
-        final Reader reader = new InputStreamReader(getClass().getResourceAsStream(LESS_JS), "UTF-8");
-
-        try {
-            Context context = Context.enter();
-            context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and
-                                              // fails
-            
-            try {
-                globalScope = context.initStandardObjects();
-                globalScope.put("support", globalScope, this);
-                context.evaluateString(globalScope, "function print(txt) { return support.printFromParser(txt); };", "init", 2, null);
-                
-                context.evaluateReader(globalScope, reader, LESS_JS, 0, null);
-            } finally {
-                Context.exit();
-            }
-        } finally {
-            reader.close();
-        }
+        this.globalScope = buildGlobalScope();
     }
+
+	private Scriptable buildGlobalScope() throws UnsupportedEncodingException,
+			IOException {
+
+        Context context = Context.enter();
+        context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and
+                                          // fails
+        
+        try {
+            ScriptableObject scope = context.initStandardObjects();
+            scope.put("support", scope, this);
+            context.evaluateString(scope, "function print(txt) { return support.printFromParser(txt); };", "init", 2, null);
+            
+            evaluateFile(scope, context, "less-before.js");
+            evaluateFile(scope, context, LESS_JS);
+            evaluateFile(scope, context, "less-after.js");
+            return scope;
+        } finally {
+            Context.exit();
+        }
+	}
+	
+	private void evaluateFile(ScriptableObject scope, Context context, String name) throws IOException {
+		final Reader reader = new InputStreamReader(getClass().getResourceAsStream(name), "UTF-8");
+		try {
+			context.evaluateReader(scope, reader, name, 1, null);
+		} finally {
+			reader.close();
+		}
+	}
 
     @Override
     public InputStream transform(Resource resource, ResourceDependencies dependencies) throws IOException {
@@ -135,24 +149,20 @@ public class LessToCssTransformer implements ResourceTransformer {
         final Context context = Context.enter();
         try {
             
-            final WrappedLoader wrappedLoader = prepareLoader(resource, dependencies);
-            
-
             synchronized (compileLock) {
-                Scriptable scope = context.newObject(globalScope);
-                scope.setParentScope(globalScope);
+                Scriptable gs = getGlobalScope();
+				Scriptable scope = context.newObject(gs);
+                scope.setParentScope(gs);
                 scope.put("source", scope, source);
                 
-                final Scriptable jsLoader = Context.toObject(wrappedLoader, globalScope);
-                globalScope.put("loader", globalScope, jsLoader);
-                
-                context.evaluateString(globalScope, "function readFile(name) { return loader.readFile(name); };", "init", 1, null);
+                final WrappedLoader wrappedLoader = prepareLoader(resource, dependencies, gs);
+                final Scriptable jsLoader = Context.toObject(wrappedLoader, gs);
+                gs.put("loader", gs, jsLoader);
                 
                 final String shouldCompress = this.productionMode ? "true" : "false";
                 final String cmd = String.format("doParse(source, %s, '%s');", shouldCompress, resource.getPath());
                 final String result = (String) context.evaluateString(scope, cmd, String.format("%s compiling '%s'", LESS_JS, resource.getPath()), 0, null);
-                globalScope.delete("readFile");
-                globalScope.delete("loader");
+                gs.delete("loader");
                 return result;
             }
         } finally {
@@ -160,7 +170,11 @@ public class LessToCssTransformer implements ResourceTransformer {
         }
     }
 
-    private WrappedLoader prepareLoader(final Resource resource, final ResourceDependencies dependencies) {
+	private Scriptable getGlobalScope() {
+		return globalScope;
+	}
+
+    private WrappedLoader prepareLoader(final Resource resource, final ResourceDependencies dependencies, final Scriptable scope) {
         final DependencySourceLoader aggregatedLoader = new DependencySourceLoader() {
             @Override
             public String readFile(String name, Resource baseResource, ResourceDependencies dependencies) {
@@ -190,7 +204,7 @@ public class LessToCssTransformer implements ResourceTransformer {
         final WrappedLoader wrappedLoader = new WrappedLoader() {
             @Override
             public Scriptable readFile(String name) throws IOException {
-                return Context.toObject(aggregatedLoader.readFile(name, resource, dependencies), globalScope);
+                return Context.toObject(aggregatedLoader.readFile(name, resource, dependencies), scope);
             }
         };
         return wrappedLoader;
