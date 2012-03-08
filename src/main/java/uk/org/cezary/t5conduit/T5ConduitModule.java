@@ -45,8 +45,13 @@ public class T5ConduitModule {
     @FactoryDefaults
     public static void setupDefaultSymbols(MappedConfiguration<String, String> configuration) {
     	configuration.add(T5ConduitConstants.COFFEE_SUFFIX, "coffee");
+    	configuration.add(T5ConduitConstants.COFFEE_COMPILER, "coffee-script-1.2.0.js");
+    	
     	configuration.add(T5ConduitConstants.LESS_SUFFIX, "less");
     	configuration.add(T5ConduitConstants.LESS_CTX_PATH_VAR_NAME, "CTX_PATH");
+    	configuration.add(T5ConduitConstants.LESS_COMPILER, "less-1.2.2.js");
+    	configuration.add(T5ConduitConstants.LESS_BEFORE_COMPILER, "less-before.js");
+    	configuration.add(T5ConduitConstants.LESS_AFTER_COMPILER, "less-after.js");
     }
     
     @Contribute(ContentTypeAnalyzer.class)

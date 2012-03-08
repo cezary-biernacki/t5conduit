@@ -56,13 +56,16 @@ import uk.org.cezary.t5conduit.internal.WrappedLoader;
 public class LessToCssTransformer implements ResourceTransformer {
     private static final Logger log = LoggerFactory.getLogger(LessToCssTransformer.class);
     
-    private static final String LESS_JS = "less-1.1.5.js";
     private final boolean productionMode; 
     
     private final List<DependencySourceLoader> loaders;
     
     private final String ctxPathVarName; 
     private final AssetSource assetSource;
+    
+    private final String lessCompiler;
+    private final String lessBefore;
+    private final String lessAfter;
     
     
     private final Pool<Scriptable> pool = new Pool<Scriptable>(3, 
@@ -78,6 +81,9 @@ public class LessToCssTransformer implements ResourceTransformer {
                 final List<DependencySourceLoader> loaders, 
                 @Inject @Symbol(SymbolConstants.PRODUCTION_MODE) final boolean productionMode,
                 @Inject @Symbol(T5ConduitConstants.LESS_CTX_PATH_VAR_NAME) String ctxPathVarName,
+                @Inject @Symbol(T5ConduitConstants.LESS_COMPILER) String lessCompiler,
+                @Inject @Symbol(T5ConduitConstants.LESS_BEFORE_COMPILER) String lessBefore,
+                @Inject @Symbol(T5ConduitConstants.LESS_AFTER_COMPILER) String lessAfter,
                 AssetSource assetSource) 
     
     throws IOException {
@@ -85,6 +91,11 @@ public class LessToCssTransformer implements ResourceTransformer {
         
         this.ctxPathVarName = ctxPathVarName;
         this.assetSource = assetSource;
+        
+        this.lessCompiler = lessCompiler;
+        this.lessBefore = lessBefore;
+        this.lessAfter = lessAfter;
+        
         
         final ArrayList<DependencySourceLoader> ownLoaders = new ArrayList<DependencySourceLoader>(loaders);
         ownLoaders.add(new RelativeDependencySourceLoader());
@@ -96,7 +107,7 @@ public class LessToCssTransformer implements ResourceTransformer {
         try {
 			return buildGlobalScopeInternal();
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to prepare less compiler from " + LESS_JS, e);
+			throw new RuntimeException("Failed to prepare less compiler from " + this.lessCompiler, e);
 		}
 	}
 
@@ -110,9 +121,9 @@ public class LessToCssTransformer implements ResourceTransformer {
             scope.put("support", scope, this);
             context.evaluateString(scope, "function print(txt) { return support.printFromParser(txt); };", "init", 2, null);
             
-            evaluateFile(scope, context, "less-before.js");
-            evaluateFile(scope, context, LESS_JS);
-            evaluateFile(scope, context, "less-after.js");
+            evaluateFile(scope, context, this.lessBefore);
+            evaluateFile(scope, context, this.lessCompiler);
+            evaluateFile(scope, context, this.lessAfter);
             return scope;
         } finally {
             Context.exit();
@@ -185,7 +196,7 @@ public class LessToCssTransformer implements ResourceTransformer {
 			final String shouldCompress = this.productionMode ? "true" : "false";
 			final String cmd = String.format("doParse(source, %s, '%s');", shouldCompress, resource.getPath());
 			final String result = (String) context.evaluateString(scope, cmd, 
-					String.format("%s compiling '%s'", LESS_JS, resource.getPath()), 
+					String.format("%s compiling '%s'", this.lessCompiler, resource.getPath()), 
 					hasCtxPath() ? 0 : 1, null);
 			return result;
         } finally {

@@ -52,6 +52,9 @@
 
         <resources>
           <resource>
+            <directory>src/main/resources</directory>
+          </resource>
+          <resource>
             <directory>${basedir}</directory>
             <filtering>false</filtering>
             <includes>

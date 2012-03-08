@@ -7,7 +7,7 @@ location = {
 
 window = {
    less: {
-	   env: 'production',
+	   env: 'production'
    }
 };
 
@@ -15,4 +15,4 @@ document = {
    getElementsByTagName: function() { 
 	   return []; 
    }
-}
+};

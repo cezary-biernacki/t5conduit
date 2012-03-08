@@ -23,7 +23,7 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
             printError(sheetName, e);
         }
         
-        callback(root, sheet, { local: false, lastModified: 0, remaining: remaining });
+        callback(null, root, sheet, { local: false, lastModified: 0, remaining: remaining });
     });
 
 }

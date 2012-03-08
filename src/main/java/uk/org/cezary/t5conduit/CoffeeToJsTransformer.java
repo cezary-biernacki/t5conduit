@@ -22,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 
 import org.apache.tapestry5.ioc.Invokable;
 import org.apache.tapestry5.ioc.Resource;
+import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.ioc.annotations.Symbol;
 import org.apache.tapestry5.services.assets.ResourceDependencies;
 import org.apache.tapestry5.services.assets.ResourceTransformer;
 import org.mozilla.javascript.Context;
@@ -44,8 +46,6 @@ import uk.org.cezary.t5conduit.internal.Pool;
 
 public class CoffeeToJsTransformer implements ResourceTransformer {
 
-    private static final String COFFEE_JS = "coffee-script-1.2.0.js";
-
     private final Pool<Scriptable> pool = new Pool<Scriptable>(3, 
         	new Invokable<Scriptable>() {
     	    	@Override
@@ -54,28 +54,32 @@ public class CoffeeToJsTransformer implements ResourceTransformer {
     			}
         	}
         );
+    
+    private final String coffeeCompiler;
 
 
-    public CoffeeToJsTransformer() {}
+    public CoffeeToJsTransformer(@Inject @Symbol(T5ConduitConstants.COFFEE_COMPILER) String coffeeCompiler) {
+    	this.coffeeCompiler = coffeeCompiler;
+    }
 
 	private Scriptable buildGlobalScope() {
         try {
 			return buildGlobalScopeInternal();
 		} catch (IOException e) {
-			throw new RuntimeException("failed to compile: " + COFFEE_JS, e);
+			throw new RuntimeException("failed to compile: " + coffeeCompiler, e);
 		}
 	}
 
 	private Scriptable buildGlobalScopeInternal()
 			throws UnsupportedEncodingException, IOException {
-		final Reader reader = new InputStreamReader(getClass().getResourceAsStream(COFFEE_JS), "UTF-8");
+		final Reader reader = new InputStreamReader(getClass().getResourceAsStream(coffeeCompiler), "UTF-8");
 
         try {
             Context context = Context.enter();
             try {
                 context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
         		Scriptable scope = context.initStandardObjects();
-                context.evaluateReader(scope, reader, COFFEE_JS, 1, null);
+                context.evaluateReader(scope, reader, coffeeCompiler, 1, null);
                 return scope;
             } finally {
                 Context.exit();
