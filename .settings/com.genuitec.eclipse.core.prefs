@@ -1,0 +1,5 @@
+#Thu Mar 08 15:30:59 CET 2012
+eclipse.preferences.version=1
+validator.Checked=target,src/main/resources/uk/org/cezary/t5conduit/less-1.1.5.js,src/main/resources/uk/org/cezary/t5conduit/coffee-script-1.2.0.js,src/main/resources/uk/org/cezary/t5conduit/less-1.2.2.js
+validator.Revalidate=true
+validator.Unchecked=
