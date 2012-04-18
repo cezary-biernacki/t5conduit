@@ -17,7 +17,13 @@ function printError(name, e) {
 function loadStyleSheet(sheet, callback, reload, remaining) {
     var sheetName = sheet.href;
     var input = loader.readFile(sheetName);
-    var parser = new less.Parser();
+    var paths = [];
+    var pos = sheetName.lastIndexOf('/');
+    if (pos > 0) {
+    	paths = [sheetName.substr(0,pos+1)];
+    }
+    
+    var parser = new less.Parser({ filename: sheetName, paths: paths } );
     parser.parse(input, function (e, root) {
         if (e) {
             printError(sheetName, e);
