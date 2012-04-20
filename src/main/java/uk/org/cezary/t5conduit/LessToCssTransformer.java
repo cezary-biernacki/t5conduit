@@ -38,6 +38,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.org.cezary.t5conduit.internal.EnvironmentDummy;
 import uk.org.cezary.t5conduit.internal.Pool;
 import uk.org.cezary.t5conduit.internal.WrappedLoader;
 
@@ -55,6 +56,9 @@ import uk.org.cezary.t5conduit.internal.WrappedLoader;
 @UsesConfiguration(DependencySourceLoader.class)
 public class LessToCssTransformer implements ResourceTransformer {
     private static final Logger log = LoggerFactory.getLogger(LessToCssTransformer.class);
+    
+    /** forces reloading compiler each time, useful only for LessToCssTransformer development. */
+    private static final boolean ALWAYS_RELOAD_COMPILER = false;
     
     private final boolean productionMode; 
     
@@ -119,7 +123,10 @@ public class LessToCssTransformer implements ResourceTransformer {
         try {
             ScriptableObject scope = context.initStandardObjects();
             scope.put("support", scope, this);
+            EnvironmentDummy.init(scope);
+            
             context.evaluateString(scope, "function print(txt) { return support.printFromParser(txt); };", "init", 2, null);
+            
             
             evaluateFile(scope, context, this.lessBefore);
             evaluateFile(scope, context, this.lessCompiler);
@@ -173,6 +180,11 @@ public class LessToCssTransformer implements ResourceTransformer {
 	}
 
     private synchronized String compile(final String source, final Resource resource, final ResourceDependencies dependencies) {
+    	if (ALWAYS_RELOAD_COMPILER) {
+    		final Scriptable gs = buildGlobalScope();
+			return compileInternal(source, resource, dependencies, gs);
+    	}
+    	
         return pool.withObject(new Pool.Processor<String, Scriptable>() {
         	@Override
         	public String process(Scriptable gs) {
@@ -201,7 +213,7 @@ public class LessToCssTransformer implements ResourceTransformer {
 			return result;
         } finally {
         	try {
-			gs.delete("loader");
+        		gs.delete("loader");
         	} finally { 
         		Context.exit();
         	}

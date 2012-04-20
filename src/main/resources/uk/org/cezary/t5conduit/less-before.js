@@ -2,14 +2,12 @@
 // which is browser like, because 'rhino' version is not actually usable :-(
 
 location = {
-		
+		protocol: '',
+		hostname: '',
+		port: ''
 };
 
-window = {
-   less: {
-	   env: 'production'
-   }
-};
+window = {};
 
 document = {
    getElementsByTagName: function() { 
