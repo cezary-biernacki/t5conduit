@@ -49,7 +49,7 @@ public class T5ConduitModule {
     	
     	configuration.add(T5ConduitConstants.LESS_SUFFIX, "less");
     	configuration.add(T5ConduitConstants.LESS_CTX_PATH_VAR_NAME, "CTX_PATH");
-    	configuration.add(T5ConduitConstants.LESS_COMPILER, "less-1.3.0.js");
+    	configuration.add(T5ConduitConstants.LESS_COMPILER, "less-1.3.3.js");
     	configuration.add(T5ConduitConstants.LESS_BEFORE_COMPILER, "less-before.js");
     	configuration.add(T5ConduitConstants.LESS_AFTER_COMPILER, "less-after.js");
     }
